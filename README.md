@@ -36,7 +36,5 @@ two `string` objects, use `EXPECT_EQ`, `EXPECT_NE`, and etc instead.
 | --------------------------     | ------------------------------ | -------------------------------------------------------- |
 | `ASSERT_STREQ(str1,str2);`     | `EXPECT_STREQ(str1,str2);`     | the two C strings have the same content   		     |
 | `ASSERT_STRNE(str1,str2);`     | `EXPECT_STRNE(str1,str2);`     | the two C strings have different contents 		     |
-| `ASSERT_STRCASEEQ(str1,str2);` | `EXPECT_STRCASEEQ(str1,str2);` | the two C strings have the same content, ignoring case   |
-| `ASSERT_STRCASENE(str1,str2);` | `EXPECT_STRCASENE(str1,str2);` | the two C strings have different contents, ignoring case |
 
 <!-- mdformat on-->
