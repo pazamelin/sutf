@@ -1,5 +1,5 @@
 # sutf
-## simple unit test framework
+## simple unit test framework created for the sake of some C++ practice; currently in developemt, thus stable work is not guaranteed.
 
 ## Assertions:
 
