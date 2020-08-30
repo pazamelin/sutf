@@ -32,10 +32,10 @@ two `string` objects, use `EXPECT_EQ`, `EXPECT_NE`, and etc instead.
 
 <!-- mdformat off(github rendering does not support multiline tables) -->
 
-| Fatal assertion                | Nonfatal assertion             | Verifies                                                 |
-| --------------------------     | ------------------------------ | -------------------------------------------------------- |
-| `ASSERT_STREQ(str1,str2);`     | `EXPECT_STREQ(str1,str2);`     | the two C strings have the same content   		     |
-| `ASSERT_STRNE(str1,str2);`     | `EXPECT_STRNE(str1,str2);`     | the two C strings have different contents 		     |
+| Fatal assertion                  | Nonfatal assertion               | Verifies                                                 |
+| --------------------------       | ------------------------------   | -------------------------------------------------------- |
+| `ASSERT_CSTR_EQ(str1,str2);`     | `EXPECT_CSTR_EQ(str1,str2);`     | the two C strings have the same content   		     |
+| `ASSERT_CSTR_NE(str1,str2);`     | `EXPECT_CSTR_NE(str1,str2);`     | the two C strings have different contents 		     |
 
 <!-- mdformat on-->
 
