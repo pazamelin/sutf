@@ -59,27 +59,27 @@ namespace sutf
 
     // asserts: x == y
     #define ASSERT_EQ(x, y) \
-        ASSERT_EQ_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, EQ, !=, true)
 
     // asserts: x != y
     #define ASSERT_NE(x, y) \
-        ASSERT_NE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, NE, ==, true)
 
     // asserts: x < y
     #define ASSERT_LT(x, y) \
-        ASSERT_LT_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, LT, >=, true)
 
     // asserts: x <= y
     #define ASSERT_LE(x, y) \
-        ASSERT_LE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, LE, >, true)
 
     // asserts: x > y
     #define ASSERT_GT(x, y) \
-        ASSERT_GT_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, GT, <=, true)
 
     // asserts: x >= y
     #define ASSERT_GE(x, y) \
-        ASSERT_GE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, ASSERT, GE, <, true)
 
     ////////////////////////////////
     //   EXPECT OPERATOR MACROS   //
@@ -87,27 +87,27 @@ namespace sutf
 
     // expects: x == y
     #define EXPECT_EQ(x, y) \
-        EXPECT_EQ_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, EQ, !=, false)
 
     // expects: x != y
     #define EXPECT_NE(x, y) \
-        EXPECT_NE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, NE, ==, false)
 
     // expects: x < y
     #define EXPECT_LT(x, y) \
-        EXPECT_LT_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, LT, >=, false)
 
     // expects: x <= y
     #define EXPECT_LE(x, y) \
-        EXPECT_LE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, LE, >, false)
 
     // expects: x > y
     #define EXPECT_GT(x, y) \
-        EXPECT_GE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, GT, <, false)
 
     // expects: x >= y
     #define EXPECT_GE(x, y) \
-        EXPECT_GE_IMPLEMENTATION(x, y)
+        CHECK_IMPLEMENTATION(x, y, EXPECT, GE, <=, false)
 
     /////////////////////////////////////
     //   ASSERT_CSTR OPERATOR MACROS   //
@@ -117,27 +117,27 @@ namespace sutf
 
     // asserts: cstr1 == cstr2
     #define ASSERT_CSTR_EQ(cstr1, cstr2) \
-        ASSERT_CSTR_EQ_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, EQ, !=, true)
 
     // asserts: cstr1 != cstr2
     #define ASSERT_CSTR_NE(cstr1, cstr2) \
-        ASSERT_CSTR_NE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, NE, ==, true)
 
     // asserts: cstr1 < cstr2
     #define ASSERT_CSTR_LT(cstr1, cstr2) \
-        ASSERT_CSTR_LT_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, LT, >=, true)
 
     // asserts: cstr1 <= cstr2
     #define ASSERT_CSTR_LE(cstr1, cstr2) \
-        ASSERT_CSTR_LE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, LE, >, true)
 
     // asserts: cstr1 > cstr2
     #define ASSERT_CSTR_GT(cstr1, cstr2) \
-        ASSERT_CSTR_GT_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, GT, <=, true)
 
     // asserts: cstr1 >= cstr2
     #define ASSERT_CSTR_GE(cstr1, cstr2) \
-        ASSERT_CSTR_GE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, ASSERT_CSTR, GE, <, true)
 
     /////////////////////////////////////
     //   EXPECT_CSTR OPERATOR MACROS   //
@@ -147,27 +147,27 @@ namespace sutf
 
     // expects: cstr1 == cstr2
     #define EXPECT_CSTR_EQ_(cstr1, cstr2) \
-        EXPECT_CSTR_EQ_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, EQ, !=, false)
 
     // expects: cstr1 != cstr2
     #define EXPECT_CSTR_NE(cstr1, cstr2) \
-        EXPECT_CSTR_NE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, NE, ==, false)
 
     // expects: cstr1 < cstr2
     #define EXPECT_CSTR_LT(cstr1, cstr2) \
-        EXPECT_CSTR_LT_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, LT, >=, false)
 
     // expects: cstr1 <= cstr2
     #define EXPECT_CSTR_LE(cstr1, cstr2) \
-        EXPECT_CSTR_LE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, LE, >, false)
 
     // expects: cstr1 > cstr2
     #define EXPECT_CSTR_GT(cstr1, cstr2) \
-        EXPECT_CSTR_GT_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, GT, <=, false)
 
     // expects: cstr1 >= cstr2
     #define EXPECT_CSTR_GE(cstr1, cstr2) \
-        EXPECT_CSTR_GE_IMPLEMENTATION(cstr1, cstr2)
+        CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, EXPECT_CSTR, GE, <, false)
 
     //////////////////////////////////
     //   ASSERT TRUE/FALSE MACROS   //
@@ -255,6 +255,11 @@ namespace sutf::_internal
     #define FAIL_INFO(failed_macro_name, x, op, y)              \
         #failed_macro_name " failed: " #x " " #op " " #y ", "   \
         __FILE__ ":" STRINGIZE(__LINE__)
+
+    #define CHECK_FAIL_INFO(x, y, type, op, iop)                \
+        STRINGIZE(type ## _ ## op) " failed: " #x " " #iop " " #y ", "      \
+        __FILE__ ":" STRINGIZE(__LINE__)
+
 
     //////////////////////////////
     //   ASSERT/EXPECT RESULT   //
@@ -380,7 +385,7 @@ namespace sutf::_internal
         }
     }
 
-    eOperators operator!(const eOperators &obj)
+    constexpr inline eOperators operator!(const eOperators &obj)
     {
         switch (obj) {
             case eOperators::EQ:
@@ -421,17 +426,18 @@ namespace sutf::_internal
         }
     }
 
-    ///////////////////////////
-    //    ASSERT FUNCTION    //
-    ///////////////////////////
+    //////////////////////////
+    //    CHECK FUNCTION    //
+    //////////////////////////
 
     template<class T, class U>
-    check_result assertOP(
-            const T &t, const U &u,
+    check_result check(
+            const T &t,
+            const U &u,
             eOperators op,
+            bool isAssert,
             const std::string &hint = {})
     {
-        //TODO - replace expectOP and sutf::assertOP with a uniform function
         if (!(apply_operator(t, u, op)))
         {
             std::ostringstream os;
@@ -451,23 +457,19 @@ namespace sutf::_internal
             }
             os << t << " " << !op << " " << u << std::endl;
 
-            return {true, os.str()};
+            return {isAssert, os.str()};
         }
-        return {true, ""};
+        return {isAssert, ""};
     }
 
-    ////////////////////////////
-    //     EXPECT FUNCTION    //
-    ////////////////////////////
-
-    template<class T, class U>
-    check_result expectOP(
-            const T &t, const U &u,
+    check_result check_cstr(
+            const char* const cstr1,
+            const char* const cstr2,
             eOperators op,
+            bool isAssert,
             const std::string &hint = {})
     {
-        //TODO - replace sutf::expectOP and assertOP with a uniform function
-        if (!(apply_operator(t, u, op)))
+        if (!(apply_operator(std::strcmp(cstr1, cstr2), 0, op)))
         {
             std::ostringstream os;
             if (!hint.empty())
@@ -477,182 +479,35 @@ namespace sutf::_internal
 
             if (op == eOperators::EQ)
             {
-                os << "         actual: " << t;
-                os << ", expected: " << u << ", ";
+                os << "         actual: \"" << cstr1 << "\n";
+                os << ", expected: \"" << cstr2 << "\", ";
             }
             else
             {
                 os << "         ";
             }
-            os << t << " " << !op << " " << u << std::endl;
-            return {false, os.str()};
+            os << "\"" << cstr1 << "\" " << !op << " \"" << cstr2 << "\"" << std::endl;
+
+            return {isAssert, os.str()};
         }
-        return {false, ""};
+        return {isAssert, ""};
     }
 
-    ////////////////////////////////////////////////
-    //   ASSERT OPERATOR MACROS IMPLEMENTATIONS   //
-    ////////////////////////////////////////////////
+    ////////////////////////////////////
+    //   CHECK MACRO IMPLEMENTATION   //
+    ////////////////////////////////////
 
-    // asserts: x == y
-    #define ASSERT_EQ_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::EQ,   \
-                 FAIL_INFO(ASSERT_EQ, x, !=, y)))
+    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert)  \
+        __rs.add(sutf::_internal::check(x, y,                     \
+                 sutf::_internal::eOperators::op,                 \
+                 is_assert,                                       \
+                 CHECK_FAIL_INFO(x, y, type, op, iop)))
 
-    // asserts: x != y
-    #define ASSERT_NE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::NE,   \
-                 FAIL_INFO(ASSERT_NE, x, ==, y)))
-
-    // asserts: x < y
-    #define ASSERT_LT_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::LT,   \
-                 FAIL_INFO(ASSERT_LT, x, >=, y)))
-
-    // asserts: x <= y
-    #define ASSERT_LE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::LE,   \
-                 FAIL_INFO(ASSERT_LE, x, >, y)))
-
-    // asserts: x > y
-    #define ASSERT_GT_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::GT,   \
-                 FAIL_INFO(ASSERT_GT, x, <=, y)))
-
-    // asserts: x >= y
-    #define ASSERT_GE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::assertOP(x, y,    \
-                 sutf::_internal::eOperators::GE,   \
-                 FAIL_INFO(ASSERT_GE, x, <, y)))
-
-    ////////////////////////////////////////////////
-    //   EXPECT OPERATOR MACROS IMPLEMENTATIONS   //
-    ////////////////////////////////////////////////
-
-    // expects: x == y
-    #define EXPECT_EQ_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::EQ,   \
-                 FAIL_INFO(EXPECT_EQ, x, !=, y)))
-
-    // expects: x != y
-    #define EXPECT_NE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::NE,   \
-                 FAIL_INFO(EXPECT_NE, x, ==, y)))
-
-    // expects: x < y
-    #define EXPECT_LT_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::LT,   \
-                 FAIL_INFO(EXPECT_LT, x, >=, y)))
-
-    // expects: x <= y
-    #define EXPECT_LE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::LE,   \
-                 FAIL_INFO(EXPECT_LE, x, >, y)))
-
-    // expects: x > y
-    #define EXPECT_GT_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::GT,   \
-                 FAIL_INFO(EXPECT_GT, x, <=, y)))
-
-    // expects: x >= y
-    #define EXPECT_GE_IMPLEMENTATION(x, y)          \
-        __rs.add(sutf::_internal::expectOP(x, y,    \
-                 sutf::_internal::eOperators::GE,   \
-                 FAIL_INFO(EXPECT_GE, x, <, y)))
-
-    /////////////////////////////////////////////////////
-    //   ASSERT_CSTR OPERATOR MACROS IMPLEMENTATIONS   //
-    /////////////////////////////////////////////////////
-
-    // assert macros for c strings
-
-    // asserts: cstr1 == cstr2
-    #define ASSERT_CSTR_EQ_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::EQ,                          \
-                 FAIL_INFO(ASSERT_CSTR_EQ, x, !=, y)))
-
-    // asserts: cstr1 != cstr2
-    #define ASSERT_CSTR_NE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::NE,                          \
-                 FAIL_INFO(ASSERT_CSTR_NE, x, ==, y)))
-
-    // asserts: cstr1 < cstr2
-    #define ASSERT_CSTR_LT_IMPLEMENTATION(cstr1, cstr2)                    \
-    __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,       \
-             sutf::_internal::eOperators::LT,                              \
-             FAIL_INFO(ASSERT_CSTR_LT, x, >=, y)))
-
-    // asserts: cstr1 <= cstr2
-    #define ASSERT_CSTR_LE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::LE,                          \
-                 FAIL_INFO(ASSERT_CSTR_LE, x, >, y)))
-
-    // asserts: cstr1 > cstr2
-    #define ASSERT_CSTR_GT_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::GT,                          \
-                 FAIL_INFO(ASSERT_CSTR_GT, x, <=, y)))
-
-    // asserts: cstr1 >= cstr2
-    #define ASSERT_CSTR_GE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::assertOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::GE,                          \
-                 FAIL_INFO(ASSERT_CSTR_GE, x, <, y)))
-
-    /////////////////////////////////////////////////////
-    //   EXPECT_CSTR OPERATOR MACROS IMPLEMENTATIONS   //
-    /////////////////////////////////////////////////////
-
-    // expect macros for c strings
-
-    // expects: cstr1 == cstr2
-    #define EXPECT_CSTR_EQ_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::EQ,                          \
-                 FAIL_INFO(EXPECT_CSTR_EQ_, x, !=, y)))
-
-    // expects: cstr1 != cstr2
-    #define EXPECT_CSTR_NE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::NE,                          \
-                 FAIL_INFO(EXPECT_CSTR_NE, x, ==, y)))
-
-    // expects: cstr1 < cstr2
-    #define EXPECT_CSTR_LT_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::LT,                          \
-                 FAIL_INFO(EXPECT_CSTR_LT, x, >=, y)))
-
-    // expects: cstr1 <= cstr2
-    #define EXPECT_CSTR_LE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::LE,                          \
-                 FAIL_INFO(EXPECT_CSTR_LE, x, >, y)))
-
-    // expects: cstr1 > cstr2
-    #define EXPECT_CSTR_GT_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::GT,                          \
-                 FAIL_INFO(EXPECT_CSTR_GT, x, <=, y)))
-
-    // expects: cstr1 >= cstr2
-    #define EXPECT_CSTR_GE_IMPLEMENTATION(cstr1, cstr2)                    \
-        __rs.add(sutf::_internal::expectOP(std::strcmp(cstr1, cstr2), 0,   \
-                 sutf::_internal::eOperators::GE,                          \
-                 FAIL_INFO(EXPECT_CSTR_GE, x, <, y)))
+    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert)  \
+        __rs.add(sutf::_internal::check_cstr(cstr1, cstr2,                     \
+                 sutf::_internal::eOperators::op,                              \
+                 is_assert,                                                    \
+                 CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
 
     /////////////////////////
     //   TEST TYPE ALIAS   //
