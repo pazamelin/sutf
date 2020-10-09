@@ -51,7 +51,7 @@ To create a test:
     If any `EXPECT_*` in the test fails, an error message is produced, but the entire test won't fail.
 
 ```c++
-TEST(TestSuiteName, TestName) {
+TEST(TestName) {
   ... test body ...
 }
 ```
