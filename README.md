@@ -64,8 +64,11 @@ To run all created tests use the `RUN_ALL_TESTS()` macro.
 #include <fstream>
 #include <string>
 #include <set>
+#include <map>
+#include <vector>
 
-#include "single_include/sutf.hpp"
+#include "single_header/sutf.hpp"
+// #include "merger.hpp"
 
 TEST(strings)
 {
@@ -97,13 +100,29 @@ TEST(assert_failure)
     std::set<int> some_data{0, 1, 2, 4, 5};
     auto value_entries{some_data.count(3)};
 
-    ASSERT_EQ(value_entries,2u);
-    ASSERT_EQ(value_entries,3u);
+    ASSERT_EQ(value_entries, 2u);
+    ASSERT_EQ(value_entries, 3u);
+}
+
+TEST(test_sfinae_print)
+{
+    {
+        std::map<int, int> data1{{0, 1}, {2, 4}};
+        std::map<int, int> data2{{0, 1}, {2, 6}};
+        ASSERT_EQ(data1,data2);
+    }
+
+    {
+
+        std::vector<std::pair<int,int>> data1{{0, 1}, {2, 4}};
+        std::vector<std::pair<int,int>> data2{{0, 1}, {2, 1}};
+        ASSERT_EQ(data1,data2);
+    }
 }
 
 int main()
 {
-    RUN_ALL_TESTS();
-    return 0;
+     RUN_ALL_TESTS();
+     return 0;
 }
 ```
