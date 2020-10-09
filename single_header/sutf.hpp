@@ -1,5 +1,7 @@
-#ifndef SUTF_HPP_
-#define SUTF_HPP_
+#ifndef SUTF_HPP
+#define SUTF_HPP
+
+/* start of ../include/top.h */
 
 #define SUTF_HPP_VERSION_MAJOR 0
 #define SUTF_HPP_VERSION_MINOR 1
@@ -15,18 +17,13 @@
     #error unsupported platform
 #endif
 
-#include <iostream>
-#include <sstream>
-#include <exception>
-#include <stdexcept>
-#include <utility>
-#include <string>
-#include <list>
-#include <chrono>
-#include <cstdint>
-#include <cstring>
-
 #include "../third_party/termcolor/termcolor.hpp"
+
+/* end of ../include/top.h */
+
+/* start of ../include/public_api.h */
+
+#pragma once
 
 ///////////////////////////
 //   PUBLIC INTERFACE:   //
@@ -208,13 +205,13 @@ namespace sutf
     #define EXPECT_PTR(ptr) \
         EXPECT_NE(ptr, nullptr)
 
-}
+} // namespace sutf
 
-// #ifdef SUTF_HPP_IMPLEMENTATION_H
+/* end of ../include/public_api.h */
 
-//////////////////////////////////////////
-//   INTERNAL IMPLEMENTATION:: MACROS   //
-//////////////////////////////////////////
+/* start of ../include/fail_info.h */
+
+#pragma once
 
 namespace sutf::_internal
 {
@@ -231,21 +228,21 @@ namespace sutf::_internal
     #endif
 
     /*
-    * STRINGIZE converts its argument into a string constant
-    * see:
-    * https://gcc.gnu.org/onlinedocs/gcc-7.5.0/cpp/Stringizing.html
-    * https://stackoverflow.com/a/4368983
-    */
+     * STRINGIZE converts its argument into a string constant
+     * see:
+     * https://gcc.gnu.org/onlinedocs/gcc-7.5.0/cpp/Stringizing.html
+     * https://stackoverflow.com/a/4368983
+     */
 
     #define STRINGIZE_IMPLEMENTATION(arg) #arg
     #define STRINGIZE(arg) STRINGIZE_IMPLEMENTATION(arg)
 
     /*
-    * CONCAT merges its arguments into one token
-    * see:
-    * https://gcc.gnu.org/onlinedocs/cpp/Concatenation.html
-    * https://stackoverflow.com/a/4368983
-    */
+     * CONCAT merges its arguments into one token
+     * see:
+     * https://gcc.gnu.org/onlinedocs/cpp/Concatenation.html
+     * https://stackoverflow.com/a/4368983
+     */
 
     #define CONCAT_IMPLEMENTATION(arg1, arg2) arg1 ## arg2
     #define CONCAT(arg1, arg2) CONCAT_IMPLEMENTATION(arg1, arg2)
@@ -256,10 +253,230 @@ namespace sutf::_internal
         #failed_macro_name " failed: " #x " " #op " " #y ", "   \
         __FILE__ ":" STRINGIZE(__LINE__)
 
-    #define CHECK_FAIL_INFO(x, y, type, op, iop)                \
+    #define CHECK_FAIL_INFO(x, y, type, op, iop)                            \
         STRINGIZE(type ## _ ## op) " failed: " #x " " #iop " " #y ", "      \
         __FILE__ ":" STRINGIZE(__LINE__)
 
+} // namespace sutf::_internal
+
+/* end of ../include/fail_info.h */
+
+/* start of ../include/binary_operators.h */
+
+#pragma once
+
+#include <cstdint>
+#include <iostream>
+
+///////////////////////////////////////
+//    BINARY COMPARISON OPERATORS    //
+///////////////////////////////////////
+
+namespace sutf::_internal
+{
+    enum class eOperators : std::uint8_t
+    {
+        EQ, NE, LT, LE, GT, GE
+    };
+
+    std::ostream& operator << (std::ostream& os, const eOperators& obj)
+    {
+        switch (obj)
+        {
+            case eOperators::EQ:
+                return os << "==";
+            case eOperators::NE:
+                return os << "!=";
+            case eOperators::LT:
+                return os << "<";
+            case eOperators::LE:
+                return os << "<=";
+            case eOperators::GT:
+                return os << ">";
+            case eOperators::GE:
+                return os << ">=";
+        }
+    }
+
+    constexpr eOperators operator ! (const eOperators& obj) noexcept
+    {
+        switch (obj)
+        {
+            case eOperators::EQ:
+                return eOperators::NE;
+            case eOperators::NE:
+                return eOperators::EQ;
+            case eOperators::LT:
+                return eOperators::GE;
+            case eOperators::LE:
+                return eOperators::GT;
+            case eOperators::GT:
+                return eOperators::LE;
+            case eOperators::GE:
+                return eOperators::LT;
+        }
+    }
+
+    template<class T, class U>
+    constexpr bool apply_operator(const T& t, const U& u,
+                                  const eOperators& op) noexcept
+    {
+        switch (op)
+        {
+            case eOperators::EQ:
+                return t == u;
+            case eOperators::NE:
+                return t != u;
+            case eOperators::LT:
+                return t < u;
+            case eOperators::LE:
+                return t <= u;
+            case eOperators::GT:
+                return t > u;
+            case eOperators::GE:
+                return t >= u;
+        }
+    }
+
+} // namespace sutf::_internal
+
+/* end of ../include/binary_operators.h */
+
+/* start of ../include/printing.h */
+
+#include <type_traits> // for enable_if
+#include <iostream>
+#include <vector>
+#include <string>
+#include <utility>
+
+//////////////////////////////////////
+//   META TYPE CHECK: OPERATOR <<   //
+//////////////////////////////////////
+
+namespace sutf::_internal
+{
+    template<typename T>
+    class has_output_operator
+    {
+    private:
+
+        template<typename U, typename = decltype(std::cout << std::declval<U>())>
+        static constexpr bool
+        check(nullptr_t) noexcept
+        {
+            return true;
+        }
+
+        template<typename ...>
+        static constexpr bool check(...) noexcept
+        {
+            return false;
+        }
+
+    public:
+        static constexpr bool value{check<T>(nullptr)};
+    };
+
+    template<typename T>
+    class is_iteratable
+    {
+    private:
+
+        template<typename U>
+        static constexpr decltype(std::begin(std::declval<U>()),
+                std::end(std::declval<U>()),
+                bool())
+        check(nullptr_t) noexcept
+        {
+            return true;
+        }
+
+        template<typename ...>
+        static constexpr bool check(...) noexcept
+        {
+            return false;
+        }
+
+    public:
+        static constexpr bool value{check<T>(nullptr)};
+    };
+
+    template<typename T>
+    void print_meta_info(std::ostream &os = std::cout)
+    {
+        os << "is iteratable: " << is_iteratable<T>::value << std::endl;
+        os << "has output operator: " << has_output_operator<T>::value << std::endl;
+        os << std::endl;
+
+        // TODO: check type deduction
+    }
+} // namespace sutf::internal
+
+//////////////////////////////////
+//   DEFAULT OUTPUT ITERATORS   //
+//////////////////////////////////
+
+namespace sutf::_internal
+{
+    template <typename T>
+    typename std::enable_if<is_iteratable<T>::value &&
+                            !has_output_operator<T>::value,
+            std::ostream&>::type
+    operator << (std::ostream& os, const T& obj)
+    {
+        bool flag{false};
+
+        os << "{";
+        for(const auto& unit : obj)
+        {
+            if(flag)
+            {
+                os << ", ";
+            }
+            flag = true;
+            os << unit;
+        }
+        os << "}";
+
+        return os;
+    }
+
+    template <typename LHS, typename RHS>
+    typename std::enable_if<!has_output_operator<std::pair<LHS, RHS>>::value, std::ostream&>::type
+    operator << (std::ostream& os, const std::pair<LHS, RHS>& obj)
+    {
+        return os << "{" << obj.first << ", " << obj.second << "}";
+    }
+
+    template <typename T>
+    typename std::enable_if<!is_iteratable<T>::value &&
+                            !has_output_operator<T>::value,
+            std::ostream&>::type
+    operator << (std::ostream& os, const T& value)
+    {
+        // cannot be printed
+        // reflection?
+        exit(123);
+    }
+
+} // namespace sutf::internal
+
+/* end of ../include/printing.h */
+
+/* start of ../include/check.h */
+
+#pragma once
+
+#include <string>
+#include <sstream>
+#include <cstring>
+#include <iostream>
+
+// #include "binary_operators.h"
+
+namespace sutf::_internal
+{
 
     //////////////////////////////
     //   ASSERT/EXPECT RESULT   //
@@ -280,151 +497,6 @@ namespace sutf::_internal
             failure = !fail_msg.empty();
         };
     };
-
-    /////////////////////
-    //   TEST RESULT   //
-    /////////////////////
-
-#include <list>
-
-    // result of a single TEST
-    // contains results of all ASSERT and EXPECT macros used in the test
-
-    class test_result
-    {
-    public:
-        test_result() = default;
-
-        void add(check_result &&new_result)
-        {
-            data.push_back(new_result);
-        }
-
-        [[nodiscard]] auto begin()
-        {
-            return data.begin();
-        }
-
-        [[nodiscard]] auto cbegin() const
-        {
-            return data.cbegin();
-        }
-
-        [[nodiscard]] auto end()
-        {
-            return data.end();
-        }
-
-        [[nodiscard]] auto cend() const
-        {
-            return data.cbegin();
-        }
-
-    private:
-        ::std::list<check_result> data;
-    };
-
-    ////////////////////////////////
-    //    TEST FAIL EXCEPTIONS    //
-    ////////////////////////////////
-
-    // [[maybe_unused]]
-
-    class fatal_test_error : protected std::runtime_error
-    {
-    public:
-        explicit fatal_test_error(const std::string &__arg)
-                : runtime_error(__arg)
-        {};
-
-        [[nodiscard]] const char *what() const noexcept override
-        {
-            return std::runtime_error::what();
-        }
-    };
-
-    class nonfatal_test_error : protected std::runtime_error
-    {
-    public:
-        explicit nonfatal_test_error(const std::string &__arg)
-                : runtime_error(__arg)
-        {};
-
-        [[nodiscard]] const char *what() const noexcept override
-        {
-            return std::runtime_error::what();
-        }
-    };
-
-    ///////////////////////////////////////
-    //    BINARY COMPARISON OPERATORS    //
-    ///////////////////////////////////////
-
-    enum class eOperators : std::uint8_t
-    {
-        EQ, NE, LT, LE, GT, GE
-    };
-
-    std::ostream &operator<<(std::ostream &os, const eOperators &obj)
-    {
-        switch (obj) {
-            case eOperators::EQ:
-                return os << "==";
-            case eOperators::NE:
-                return os << "!=";
-            case eOperators::LT:
-                return os << "<";
-            case eOperators::LE:
-                return os << "<=";
-            case eOperators::GT:
-                return os << ">";
-            case eOperators::GE:
-                return os << ">=";
-            default:
-                throw std::runtime_error("unknown operator");
-        }
-    }
-
-    constexpr inline eOperators operator!(const eOperators &obj)
-    {
-        switch (obj) {
-            case eOperators::EQ:
-                return eOperators::NE;
-            case eOperators::NE:
-                return eOperators::EQ;
-            case eOperators::LT:
-                return eOperators::GE;
-            case eOperators::LE:
-                return eOperators::GT;
-            case eOperators::GT:
-                return eOperators::LE;
-            case eOperators::GE:
-                return eOperators::LT;
-            default:
-                throw std::runtime_error("unknown operator");
-        }
-    }
-
-    template<class T, class U>
-    bool apply_operator(const T &t, const U &u, const eOperators &op)
-    {
-        switch (op) {
-            case eOperators::EQ:
-                return t == u;
-            case eOperators::NE:
-                return t != u;
-            case eOperators::LT:
-                return t < u;
-            case eOperators::LE:
-                return t <= u;
-            case eOperators::GT:
-                return t > u;
-            case eOperators::GE:
-                return t >= u;
-            default:
-                throw std::runtime_error("unknown operator");
-        }
-    }
 
     //////////////////////////
     //    CHECK FUNCTION    //
@@ -450,8 +522,7 @@ namespace sutf::_internal
             {
                 os << "         actual: " << t;
                 os << ", expected: " << u << ", ";
-            }
-            else
+            } else
             {
                 os << "         ";
             }
@@ -463,8 +534,8 @@ namespace sutf::_internal
     }
 
     check_result check_cstr(
-            const char* const cstr1,
-            const char* const cstr2,
+            const char *const cstr1,
+            const char *const cstr2,
             eOperators op,
             bool isAssert,
             const std::string &hint = {})
@@ -497,17 +568,33 @@ namespace sutf::_internal
     //   CHECK MACRO IMPLEMENTATION   //
     ////////////////////////////////////
 
-    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert)  \
-        __rs.add(sutf::_internal::check(x, y,                     \
-                 sutf::_internal::eOperators::op,                 \
-                 is_assert,                                       \
+    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert) \
+        __rs.add(sutf::_internal::check(x, y,                    \
+                 sutf::_internal::eOperators::op,                \
+                 is_assert,                                      \
                  CHECK_FAIL_INFO(x, y, type, op, iop)))
 
-    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert)  \
-        __rs.add(sutf::_internal::check_cstr(cstr1, cstr2,                     \
-                 sutf::_internal::eOperators::op,                              \
-                 is_assert,                                                    \
+    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert) \
+        __rs.add(sutf::_internal::check_cstr(cstr1, cstr2,                    \
+                 sutf::_internal::eOperators::op,                             \
+                 is_assert,                                                   \
                  CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
+
+} // namespace sutf::_internal
+
+/* end of ../include/check.h */
+
+/* start of ../include/test.h */
+
+#pragma once
+
+#include <list>
+
+// #include "check.h"
+
+namespace sutf::_internal
+{
+    class test_result;
 
     /////////////////////////
     //   TEST TYPE ALIAS   //
@@ -530,25 +617,78 @@ namespace sutf::_internal
     // "tests" section accumulates pointers to test functions
     // "test_names" section accumulates test names
 
-    #define REGISTER_TEST(name)                                          \
-        void name([[maybe_unused]] sutf::_internal::test_result& __rs);  \
-        inline sutf::_internal::test_name_return_t name ## _name();      \
-                                                                         \
-            sutf::_internal::test_t __test_ ## name                      \
-            __attribute__((__section__("tests")))                        \
-            __attribute__((__used__))                                    \
-            = name;                                                      \
-                                                                         \
-            sutf::_internal::test_name_t test_name_ ## name              \
-            __attribute__((__section__("test_names")))                   \
-            __attribute__((__used__))                                    \
-            = name ## _name;                                             \
-                                                                         \
-        inline sutf::_internal::test_name_return_t name ## _name()       \
-            { return #name; };                                           \
-        void name([[maybe_unused]] sutf::_internal::test_result& __rs)
+    #define REGISTER_TEST(name)                                              \
+            void name([[maybe_unused]] sutf::_internal::test_result& __rs);  \
+            inline sutf::_internal::test_name_return_t name ## _name();      \
+                                                                             \
+                sutf::_internal::test_t __test_ ## name                      \
+                __attribute__((__section__("tests")))                        \
+                __attribute__((__used__))                                    \
+                = name;                                                      \
+                                                                             \
+                sutf::_internal::test_name_t test_name_ ## name              \
+                __attribute__((__section__("test_names")))                   \
+                __attribute__((__used__))                                    \
+                = name ## _name;                                             \
+                                                                             \
+            inline sutf::_internal::test_name_return_t name ## _name()       \
+                { return #name; };                                           \
+            void name([[maybe_unused]] sutf::_internal::test_result& __rs)
 
-}
+    /////////////////////
+    //   TEST RESULT   //
+    /////////////////////
+
+    #include <list>
+
+    // result of a single TEST
+    // contains results of all ASSERT and EXPECT macros used in the test
+
+    class test_result
+    {
+    public:
+
+        test_result() = default;
+
+        void add(check_result &&new_result)
+        {
+            data.push_back(new_result);
+        }
+
+        [[nodiscard]] auto begin() noexcept
+        {
+            return data.begin();
+        }
+
+        [[nodiscard]] auto end() noexcept
+        {
+            return data.end();
+        }
+
+        [[nodiscard]] auto cbegin() const noexcept
+        {
+            return data.cbegin();
+        }
+
+        [[nodiscard]] auto cend() const noexcept
+        {
+            return data.cbegin();
+        }
+
+    private:
+
+        ::std::list<check_result> data;
+    };
+
+} // namespace sutf::_internal
+
+/* end of ../include/test.h */
+
+/* start of ../include/linker_sections.h */
+
+#pragma once
+
+// #include "test.h"
 
 ///////////////////////////////////////////////
 //   CUSTOM LINKER SECTION ADDRESS VARIABLES //
@@ -562,9 +702,20 @@ extern sutf::_internal::test_t __stop_tests;
 extern sutf::_internal::test_name_t __start_test_names;
 extern sutf::_internal::test_name_t __stop_test_names;
 
-///////////////////////////////////////////////
-//   INTERNAL IMPLEMENTATION:: TEST RUNNER   //
-///////////////////////////////////////////////
+
+/* end of ../include/linker_sections.h */
+
+/* start of ../include/test_runner.h */
+
+#pragma once
+
+#include <string>
+#include <utility>
+#include <chrono>
+#include <iostream>
+
+// #include "test.h"
+// #include "linker_sections.h"
 
 namespace sutf::_internal
 {
@@ -580,16 +731,16 @@ namespace sutf::_internal
     {
     public:
         explicit LogDuration(std::string _msg = "")
-                 : msg{std::move(_msg)},
-                   start{std::chrono::steady_clock::now()}
-                   {};
+                : msg{std::move(_msg)},
+                  start{std::chrono::steady_clock::now()}
+        { };
 
         ~LogDuration()
         {
             auto finish{std::chrono::steady_clock::now()};
             auto duration{finish - start};
             std::cerr << msg << ": " << std::chrono::duration_cast<std::chrono::milliseconds>
-                (duration).count() << " ms " << std::endl;
+                    (duration).count() << " ms " << std::endl;
         }
 
     private:
@@ -714,7 +865,12 @@ namespace sutf::_internal
 
     #define RUN_ALL_TESTS_IMPLEMENTATION()   \
         sutf::_internal::run_all_tests();
-}
+
+} // namespace sutf::_internal
+
+/* end of ../include/test_runner.h */
+
+/* start of ../include/bottom.h */
 
 // #endif /* SUTF_HPP_IMPLEMENTATION_H */
 
@@ -722,4 +878,5 @@ namespace sutf::_internal
 #undef SUTF_OS_MACOS
 #undef SUTF_OS_LINUX
 
-#endif /* SUTF_HPP_ */
+/* end of ../include/bottom.h */
+#endif // SUTF_HPP

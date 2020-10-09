@@ -1,5 +1,5 @@
-#ifndef FILES_MERGER_HPP
-#define FILES_MERGER_HPP
+#ifndef SINGLE_HEADER_LIBRARY_MERGER_HPP
+#define SINGLE_HEADER_LIBRARY_MERGER_HPP
 
 #include <vector>
 #include <list>
@@ -20,7 +20,7 @@ void merge(Iterator begin_file, Iterator end_file,
            const std::string& library_name
 );
 
-// #ifdef FILES_MERGER_IMPLEMENTATION_HPP
+// #ifdef SINGLE_HEADER_LIBRARY_MERGER_IMPLEMENTATION_HPP
 
 /* Implementation */
 
@@ -28,13 +28,13 @@ template <typename Iterator>
 void merge(Iterator begin_file, Iterator end_file,
            const std::string& output_filename,
            const std::string& library_name
-          )
+)
 {
     static_assert((std::is_same<typename Iterator::value_type, std::string>::value
-                    ||
+                   ||
                    std::is_same<typename Iterator::value_type, std::string_view>::value),
                   "file names must be of string or string_view type"
-                  );
+    );
 
 
     std::ofstream ofs{output_filename};
@@ -60,10 +60,10 @@ void merge(Iterator begin_file, Iterator end_file,
         for(std::string line; std::getline(current_file, line); )
         {
             if(line[0] == '#' &&
-                    std::equal(line.begin(), std::next(line.begin(), include_directive.size()),
-                    include_directive.begin(), include_directive.end()))
+               std::equal(line.begin(), std::next(line.begin(), include_directive.size()),
+                          include_directive.begin(), include_directive.end()))
             {
-                    ofs << "// ";
+                ofs << "// ";
             }
 
             ofs << line << '\n';
@@ -80,7 +80,6 @@ void merge(Iterator begin_file, Iterator end_file,
     ofs.close();
 }
 
-// #endif /* FILES_MERGER_IMPLEMENTATION_HPP */
+// #endif /* MERGER_IMPLEMENTATION_HPP */
 
-#endif /* FILES_MERGER_HPP */
-
+#endif //SINGLE_HEADER_LIBRARY_MERGER_HPP
