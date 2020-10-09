@@ -4,8 +4,8 @@
 /* start of ../include/top.h */
 
 #define SUTF_HPP_VERSION_MAJOR 0
-#define SUTF_HPP_VERSION_MINOR 1
-#define SUTF_HPP_VERSION_PATCH 1
+#define SUTF_HPP_VERSION_MINOR 2
+#define SUTF_HPP_VERSION_PATCH 3
 
 #if defined(_WIN32) || defined(_WIN64)
     #define SUTF_OS_WINDOWS
