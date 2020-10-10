@@ -1,5 +1,4 @@
 # simple unit test framework
-## created for the sake of some C++ practice; currently in development, thus stable work is not guaranteed.
 
 ## Assertions:
 
