@@ -1,3 +1,6 @@
+#ifndef SUTF_HPP
+#define SUTF_HPP
+
 #define SUTF_HPP_VERSION_MAJOR 0
 #define SUTF_HPP_VERSION_MINOR 2
 #define SUTF_HPP_VERSION_PATCH 3
@@ -12,4 +15,5 @@
     #error unsupported platform
 #endif
 
-#include "../third_party/termcolor/termcolor.hpp"
+    // is not to be ignored during merging:
+    #include "../third_party/termcolor/termcolor.hpp"
