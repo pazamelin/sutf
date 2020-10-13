@@ -1,5 +1,5 @@
-#ifndef SINGLE_HEADER_LIBRARY_MERGER_HPP
-#define SINGLE_HEADER_LIBRARY_MERGER_HPP
+#ifndef MERGER_MERGER_HPP
+#define MERGER_MERGER_HPP
 
 #include <vector>
 #include <list>
@@ -11,18 +11,6 @@
 #include <fstream>
 #include <exception>
 #include <algorithm>
-
-/* Public Interface */
-
-template <typename Iterator>
-void merge(Iterator begin_file, Iterator end_file,
-           const std::string& output_filename,
-           const std::string& library_name
-);
-
-// #ifdef SINGLE_HEADER_LIBRARY_MERGER_IMPLEMENTATION_HPP
-
-/* Implementation */
 
 template <typename Iterator>
 void merge(Iterator begin_file, Iterator end_file,
@@ -43,8 +31,8 @@ void merge(Iterator begin_file, Iterator end_file,
         throw std::runtime_error(output_filename + " cannot be opened");
     }
 
-    ofs << "#ifndef " << library_name << "_HPP" << '\n';
-    ofs << "#define " << library_name << "_HPP" << '\n';
+    // ofs << "#ifndef " << library_name << "_HPP" << '\n';
+    // ofs << "#define " << library_name << "_HPP" << '\n';
 
     while(begin_file != end_file)
     {
@@ -75,11 +63,9 @@ void merge(Iterator begin_file, Iterator end_file,
     }
 
     // ofs << "#endif // " << library_name << "_IMPLEMENTATION_HPP" << '\n';
-    ofs << "#endif // " << library_name << "_HPP" << '\n';
+    // ofs << "#endif // " << library_name << "_HPP" << '\n';
 
     ofs.close();
 }
 
-// #endif /* MERGER_IMPLEMENTATION_HPP */
-
-#endif //SINGLE_HEADER_LIBRARY_MERGER_HPP
+#endif //MERGER_MERGER_HPP
