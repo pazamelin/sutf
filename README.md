@@ -1,5 +1,7 @@
 # simple unit test framework
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/954f686578db42a49f614bc4eea033f0)](https://app.codacy.com/gh/pazamelin/sutf?utm_source=github.com&utm_medium=referral&utm_content=pazamelin/sutf&utm_campaign=Badge_Grade)
+
 ## Assertions:
 
 ### Basic Assertions
