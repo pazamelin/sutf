@@ -14,22 +14,22 @@ namespace sutf::_internal
         EQ, NE, LT, LE, GT, GE
     };
 
-    std::ostream& operator << (std::ostream& os, const eOperators& obj)
+    std::string to_string(const eOperators& obj)
     {
         switch (obj)
         {
             case eOperators::EQ:
-                return os << "==";
+                return "==";
             case eOperators::NE:
-                return os << "!=";
+                return "!=";
             case eOperators::LT:
-                return os << "<";
+                return "<";
             case eOperators::LE:
-                return os << "<=";
+                return "<=";
             case eOperators::GT:
-                return os << ">";
+                return ">";
             case eOperators::GE:
-                return os << ">=";
+                return ">=";
         }
     }
 

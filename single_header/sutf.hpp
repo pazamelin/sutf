@@ -1,11 +1,12 @@
+
+/* start of ../../include/top.h */
+
 #ifndef SUTF_HPP
 #define SUTF_HPP
 
-/* start of ../include/top.h */
-
 #define SUTF_HPP_VERSION_MAJOR 0
-#define SUTF_HPP_VERSION_MINOR 2
-#define SUTF_HPP_VERSION_PATCH 3
+#define SUTF_HPP_VERSION_MINOR 3
+#define SUTF_HPP_VERSION_PATCH 1
 
 #if defined(_WIN32) || defined(_WIN64)
     #define SUTF_OS_WINDOWS
@@ -17,11 +18,12 @@
     #error unsupported platform
 #endif
 
-#include "../third_party/termcolor/termcolor.hpp"
+    // is not to be ignored during merging:
+    #include "../third_party/termcolor/termcolor.hpp"
 
-/* end of ../include/top.h */
+/* end of ../../include/top.h */
 
-/* start of ../include/public_api.h */
+/* start of ../../include/public_api.h */
 
 #pragma once
 
@@ -207,9 +209,9 @@ namespace sutf
 
 } // namespace sutf
 
-/* end of ../include/public_api.h */
+/* end of ../../include/public_api.h */
 
-/* start of ../include/fail_info.h */
+/* start of ../../include/fail_info.h */
 
 #pragma once
 
@@ -259,9 +261,9 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../include/fail_info.h */
+/* end of ../../include/fail_info.h */
 
-/* start of ../include/binary_operators.h */
+/* start of ../../include/binary_operators.h */
 
 #pragma once
 
@@ -279,22 +281,22 @@ namespace sutf::_internal
         EQ, NE, LT, LE, GT, GE
     };
 
-    std::ostream& operator << (std::ostream& os, const eOperators& obj)
+    std::string to_string(const eOperators& obj)
     {
         switch (obj)
         {
             case eOperators::EQ:
-                return os << "==";
+                return "==";
             case eOperators::NE:
-                return os << "!=";
+                return "!=";
             case eOperators::LT:
-                return os << "<";
+                return "<";
             case eOperators::LE:
-                return os << "<=";
+                return "<=";
             case eOperators::GT:
-                return os << ">";
+                return ">";
             case eOperators::GE:
-                return os << ">=";
+                return ">=";
         }
     }
 
@@ -340,13 +342,14 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../include/binary_operators.h */
+/* end of ../../include/binary_operators.h */
 
-/* start of ../include/printing.h */
+/* start of ../../include/printing.h */
 
-#include <type_traits> // for enable_if
+#include <type_traits> // for enable_if, void_t, true_type, false_type
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string>
 #include <utility>
 
@@ -356,115 +359,133 @@ namespace sutf::_internal
 
 namespace sutf::_internal
 {
-    template<typename T>
-    class has_output_operator
-    {
-    private:
+    template <typename T, typename = void>
+    struct has_output_operator : std::false_type { };
 
-        template<typename U, typename = decltype(std::cout << std::declval<U>())>
-        static constexpr bool
-        check(nullptr_t) noexcept
-        {
-            return true;
-        }
+    template <typename T>
+    struct has_output_operator<T, std::void_t<decltype(std::declval<std::ostream&>()
+                                                       << std::declval<T>())>>
+        : std::true_type { };
 
-        template<typename ...>
-        static constexpr bool check(...) noexcept
-        {
-            return false;
-        }
+///////////////////////////////////
+//   META TYPE CHECK: ITERABLE   //
+///////////////////////////////////
 
-    public:
-        static constexpr bool value{check<T>(nullptr)};
-    };
+    template <typename T, typename = void>
+    struct is_iterable : std::false_type { };
 
-    template<typename T>
-    class is_iteratable
-    {
-    private:
+    template <typename T>
+    struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()),
+                                      decltype(std::declval<T>().end())>>
+        : std::true_type { };
 
-        template<typename U>
-        static constexpr decltype(std::begin(std::declval<U>()),
-                std::end(std::declval<U>()),
-                bool())
-        check(nullptr_t) noexcept
-        {
-            return true;
-        }
+///////////////////////////////////
+//   META TYPE CHECK: ITERABLE   //
+///////////////////////////////////
 
-        template<typename ...>
-        static constexpr bool check(...) noexcept
-        {
-            return false;
-        }
+    template <typename T, typename = void>
+    struct has_user_defined_sutf_printer_function : std::false_type { };
 
-    public:
-        static constexpr bool value{check<T>(nullptr)};
-    };
+    template <typename T>
+    struct has_user_defined_sutf_printer_function<T,
+            std::void_t<decltype(user_defined_sutf_printer_function(std::declval<std::ostream&>(),
+                                                                    std::declval<T>()))>>
+            : std::true_type { };
+
+//////////////////////////////
+//   TYPE DEBUG META INFO   //
+//////////////////////////////
 
     template<typename T>
-    void print_meta_info(std::ostream &os = std::cout)
+    void print_meta_info(std::ostream& os = std::cout)
     {
-        os << "is iteratable: " << is_iteratable<T>::value << std::endl;
+        os << "is iteratable: " << is_iterable<T>::value << std::endl;
         os << "has output operator: " << has_output_operator<T>::value << std::endl;
         os << std::endl;
-
-        // TODO: check type deduction
     }
+
 } // namespace sutf::internal
 
-//////////////////////////////////
-//   DEFAULT OUTPUT ITERATORS   //
-//////////////////////////////////
+///////////////////////////////////
+//   DEFAULT PRINTER FUNCTIONS   //
+///////////////////////////////////
 
-namespace sutf::_internal
+/////////////////////////////////////////////////
+//   FOR TYPES WITH DEFINED STREAM INSERTERS   //
+/////////////////////////////////////////////////
+
+template<typename T>
+typename std::enable_if<sutf::_internal::has_output_operator<T>::value &&
+                        !sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
+std::ostream&>::type
+sutf_printer_function(std::ostream& os, const T& value)
 {
-    template <typename T>
-    typename std::enable_if<is_iteratable<T>::value &&
-                            !has_output_operator<T>::value,
-            std::ostream&>::type
-    operator << (std::ostream& os, const T& obj)
-    {
-        bool flag{false};
+    return os << value;
+}
 
-        os << "{";
-        for(const auto& unit : obj)
+template<typename T>
+typename std::enable_if<sutf::_internal::has_output_operator<T>::value &&
+                        sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
+        std::ostream&>::type
+sutf_printer_function(std::ostream& os, const T& value)
+{
+    return user_defined_sutf_printer_function(os, value);
+}
+
+////////////////////////////////////////////////
+//   TYPES WITHOUT DEFINED STREAM INSERTERS   //
+////////////////////////////////////////////////
+
+template<typename LHS, typename RHS>
+typename std::enable_if<!sutf::_internal::has_output_operator<std::pair<LHS, RHS>>::value,
+std::ostream&>::type
+sutf_printer_function(std::ostream& os, const std::pair<LHS, RHS>& obj)
+{
+    os << "{";
+    sutf_printer_function(os, obj.first);
+    os << ", ";
+    sutf_printer_function(os, obj.second);
+    return os << "}";
+}
+
+template<typename T>
+typename std::enable_if<sutf::_internal::is_iterable<T>::value &&
+                        !sutf::_internal::has_output_operator<T>::value,
+std::ostream& >::type
+sutf_printer_function(std::ostream& os, const T& obj)
+{
+    bool flag{false};
+
+    os << "{";
+    for (const auto& unit : obj)
+    {
+        if (flag)
         {
-            if(flag)
-            {
-                os << ", ";
-            }
-            flag = true;
-            os << unit;
+            os << ", ";
         }
-        os << "}";
-
-        return os;
+        flag = true;
+        sutf_printer_function(os, unit);
     }
+    os << "}";
 
-    template <typename LHS, typename RHS>
-    typename std::enable_if<!has_output_operator<std::pair<LHS, RHS>>::value, std::ostream&>::type
-    operator << (std::ostream& os, const std::pair<LHS, RHS>& obj)
-    {
-        return os << "{" << obj.first << ", " << obj.second << "}";
-    }
+    return os;
+}
 
-    template <typename T>
-    typename std::enable_if<!is_iteratable<T>::value &&
-                            !has_output_operator<T>::value,
-            std::ostream&>::type
-    operator << (std::ostream& os, const T& value)
-    {
-        // cannot be printed
-        // reflection?
-        exit(123);
-    }
+template<typename T>
+typename std::enable_if<!sutf::_internal::is_iterable<T>::value &&
+                        !sutf::_internal::has_output_operator<T>::value,
+std::ostream& >::type
+sutf_printer_function(std::ostream& os, const T& value)
+{
+    // cannot be printed
+    //TODO: reflection  for unprintable type
+    return os << "\"unprintable_value\"";
+}
 
-} // namespace sutf::internal
 
-/* end of ../include/printing.h */
+/* end of ../../include/printing.h */
 
-/* start of ../include/check.h */
+/* start of ../../include/check.h */
 
 #pragma once
 
@@ -474,6 +495,7 @@ namespace sutf::_internal
 #include <iostream>
 
 // #include "binary_operators.h"
+// #include "printing.h"
 
 namespace sutf::_internal
 {
@@ -520,17 +542,25 @@ namespace sutf::_internal
 
             if (op == eOperators::EQ)
             {
-                os << "         actual: " << t;
-                os << ", expected: " << u << ", ";
-            } else
+                os << "         actual: ";
+                sutf_printer_function(os, t);
+                os << ", expected: ";
+                sutf_printer_function(os, u);
+                os << "; ";
+            }
+            else
             {
                 os << "         ";
             }
-            os << t << " " << !op << " " << u << std::endl;
+            sutf_printer_function(os, t);
+            os << " " << sutf::_internal::to_string(!op) << " ";
+            sutf_printer_function(os, u);
+            os << std::endl;
 
             return {isAssert, os.str()};
         }
         return {isAssert, ""};
+
     }
 
     check_result check_cstr(
@@ -551,13 +581,14 @@ namespace sutf::_internal
             if (op == eOperators::EQ)
             {
                 os << "         actual: \"" << cstr1 << "\n";
-                os << ", expected: \"" << cstr2 << "\", ";
+                os << ", expected: \"" << cstr2 << "\"; ";
             }
             else
             {
                 os << "         ";
             }
-            os << "\"" << cstr1 << "\" " << !op << " \"" << cstr2 << "\"" << std::endl;
+            os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
+               << " \"" << cstr2 << "\"" << std::endl;
 
             return {isAssert, os.str()};
         }
@@ -582,9 +613,9 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../include/check.h */
+/* end of ../../include/check.h */
 
-/* start of ../include/test.h */
+/* start of ../../include/test.h */
 
 #pragma once
 
@@ -682,9 +713,9 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../include/test.h */
+/* end of ../../include/test.h */
 
-/* start of ../include/linker_sections.h */
+/* start of ../../include/linker_sections.h */
 
 #pragma once
 
@@ -703,9 +734,9 @@ extern sutf::_internal::test_name_t __start_test_names;
 extern sutf::_internal::test_name_t __stop_test_names;
 
 
-/* end of ../include/linker_sections.h */
+/* end of ../../include/linker_sections.h */
 
-/* start of ../include/test_runner.h */
+/* start of ../../include/test_runner.h */
 
 #pragma once
 
@@ -868,9 +899,9 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../include/test_runner.h */
+/* end of ../../include/test_runner.h */
 
-/* start of ../include/bottom.h */
+/* start of ../../include/bottom.h */
 
 // #endif /* SUTF_HPP_IMPLEMENTATION_H */
 
@@ -878,5 +909,6 @@ namespace sutf::_internal
 #undef SUTF_OS_MACOS
 #undef SUTF_OS_LINUX
 
-/* end of ../include/bottom.h */
-#endif // SUTF_HPP
+#endif // SUTF_HPP_
+
+/* end of ../../include/bottom.h */

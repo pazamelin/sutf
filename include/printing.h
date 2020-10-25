@@ -1,6 +1,7 @@
-#include <type_traits> // for enable_if
+#include <type_traits> // for enable_if, void_t, true_type, false_type
 #include <iostream>
 #include <vector>
+#include <map>
 #include <string>
 #include <utility>
 
@@ -10,108 +11,126 @@
 
 namespace sutf::_internal
 {
-    template<typename T>
-    class has_output_operator
-    {
-    private:
+    template <typename T, typename = void>
+    struct has_output_operator : std::false_type { };
 
-        template<typename U, typename = decltype(std::cout << std::declval<U>())>
-        static constexpr bool
-        check(nullptr_t) noexcept
-        {
-            return true;
-        }
+    template <typename T>
+    struct has_output_operator<T, std::void_t<decltype(std::declval<std::ostream&>()
+                                                       << std::declval<T>())>>
+        : std::true_type { };
 
-        template<typename ...>
-        static constexpr bool check(...) noexcept
-        {
-            return false;
-        }
+///////////////////////////////////
+//   META TYPE CHECK: ITERABLE   //
+///////////////////////////////////
 
-    public:
-        static constexpr bool value{check<T>(nullptr)};
-    };
+    template <typename T, typename = void>
+    struct is_iterable : std::false_type { };
 
-    template<typename T>
-    class is_iteratable
-    {
-    private:
+    template <typename T>
+    struct is_iterable<T, std::void_t<decltype(std::declval<T>().begin()),
+                                      decltype(std::declval<T>().end())>>
+        : std::true_type { };
 
-        template<typename U>
-        static constexpr decltype(std::begin(std::declval<U>()),
-                std::end(std::declval<U>()),
-                bool())
-        check(nullptr_t) noexcept
-        {
-            return true;
-        }
+///////////////////////////////////
+//   META TYPE CHECK: ITERABLE   //
+///////////////////////////////////
 
-        template<typename ...>
-        static constexpr bool check(...) noexcept
-        {
-            return false;
-        }
+    template <typename T, typename = void>
+    struct has_user_defined_sutf_printer_function : std::false_type { };
 
-    public:
-        static constexpr bool value{check<T>(nullptr)};
-    };
+    template <typename T>
+    struct has_user_defined_sutf_printer_function<T,
+            std::void_t<decltype(user_defined_sutf_printer_function(std::declval<std::ostream&>(),
+                                                                    std::declval<T>()))>>
+            : std::true_type { };
+
+//////////////////////////////
+//   TYPE DEBUG META INFO   //
+//////////////////////////////
 
     template<typename T>
-    void print_meta_info(std::ostream &os = std::cout)
+    void print_meta_info(std::ostream& os = std::cout)
     {
-        os << "is iteratable: " << is_iteratable<T>::value << std::endl;
+        os << "is iteratable: " << is_iterable<T>::value << std::endl;
         os << "has output operator: " << has_output_operator<T>::value << std::endl;
         os << std::endl;
-
-        // TODO: check type deduction
     }
+
 } // namespace sutf::internal
 
-//////////////////////////////////
-//   DEFAULT OUTPUT ITERATORS   //
-//////////////////////////////////
+///////////////////////////////////
+//   DEFAULT PRINTER FUNCTIONS   //
+///////////////////////////////////
 
-namespace sutf::_internal
+/////////////////////////////////////////////////
+//   FOR TYPES WITH DEFINED STREAM INSERTERS   //
+/////////////////////////////////////////////////
+
+template<typename T>
+typename std::enable_if<sutf::_internal::has_output_operator<T>::value &&
+                        !sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
+std::ostream&>::type
+sutf_printer_function(std::ostream& os, const T& value)
 {
-    template <typename T>
-    typename std::enable_if<is_iteratable<T>::value &&
-                            !has_output_operator<T>::value,
-            std::ostream&>::type
-    operator << (std::ostream& os, const T& obj)
-    {
-        bool flag{false};
+    return os << value;
+}
 
-        os << "{";
-        for(const auto& unit : obj)
+template<typename T>
+typename std::enable_if<sutf::_internal::has_output_operator<T>::value &&
+                        sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
+        std::ostream&>::type
+sutf_printer_function(std::ostream& os, const T& value)
+{
+    return user_defined_sutf_printer_function(os, value);
+}
+
+////////////////////////////////////////////////
+//   TYPES WITHOUT DEFINED STREAM INSERTERS   //
+////////////////////////////////////////////////
+
+template<typename LHS, typename RHS>
+typename std::enable_if<!sutf::_internal::has_output_operator<std::pair<LHS, RHS>>::value,
+std::ostream&>::type
+sutf_printer_function(std::ostream& os, const std::pair<LHS, RHS>& obj)
+{
+    os << "{";
+    sutf_printer_function(os, obj.first);
+    os << ", ";
+    sutf_printer_function(os, obj.second);
+    return os << "}";
+}
+
+template<typename T>
+typename std::enable_if<sutf::_internal::is_iterable<T>::value &&
+                        !sutf::_internal::has_output_operator<T>::value,
+std::ostream& >::type
+sutf_printer_function(std::ostream& os, const T& obj)
+{
+    bool flag{false};
+
+    os << "{";
+    for (const auto& unit : obj)
+    {
+        if (flag)
         {
-            if(flag)
-            {
-                os << ", ";
-            }
-            flag = true;
-            os << unit;
+            os << ", ";
         }
-        os << "}";
-
-        return os;
+        flag = true;
+        sutf_printer_function(os, unit);
     }
+    os << "}";
 
-    template <typename LHS, typename RHS>
-    typename std::enable_if<!has_output_operator<std::pair<LHS, RHS>>::value, std::ostream&>::type
-    operator << (std::ostream& os, const std::pair<LHS, RHS>& obj)
-    {
-        return os << "{" << obj.first << ", " << obj.second << "}";
-    }
+    return os;
+}
 
-    template <typename T>
-    typename std::enable_if<!is_iteratable<T>::value &&
-                            !has_output_operator<T>::value,
-            std::ostream&>::type
-    operator << (std::ostream& os, const T& value)
-    {
-        // cannot be printed
-        // reflection?
-        exit(123);
-    }
+template<typename T>
+typename std::enable_if<!sutf::_internal::is_iterable<T>::value &&
+                        !sutf::_internal::has_output_operator<T>::value,
+std::ostream& >::type
+sutf_printer_function(std::ostream& os, const T& value)
+{
+    // cannot be printed
+    //TODO: reflection  for unprintable type
+    return os << "\"unprintable_value\"";
+}
 
-} // namespace sutf::internal

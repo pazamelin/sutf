@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "binary_operators.h"
+#include "printing.h"
 
 namespace sutf::_internal
 {
@@ -52,17 +53,25 @@ namespace sutf::_internal
 
             if (op == eOperators::EQ)
             {
-                os << "         actual: " << t;
-                os << ", expected: " << u << ", ";
-            } else
+                os << "         actual: ";
+                sutf_printer_function(os, t);
+                os << ", expected: ";
+                sutf_printer_function(os, u);
+                os << "; ";
+            }
+            else
             {
                 os << "         ";
             }
-            os << t << " " << !op << " " << u << std::endl;
+            sutf_printer_function(os, t);
+            os << " " << sutf::_internal::to_string(!op) << " ";
+            sutf_printer_function(os, u);
+            os << std::endl;
 
             return {isAssert, os.str()};
         }
         return {isAssert, ""};
+
     }
 
     check_result check_cstr(
@@ -83,13 +92,14 @@ namespace sutf::_internal
             if (op == eOperators::EQ)
             {
                 os << "         actual: \"" << cstr1 << "\n";
-                os << ", expected: \"" << cstr2 << "\", ";
+                os << ", expected: \"" << cstr2 << "\"; ";
             }
             else
             {
                 os << "         ";
             }
-            os << "\"" << cstr1 << "\" " << !op << " \"" << cstr2 << "\"" << std::endl;
+            os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
+               << " \"" << cstr2 << "\"" << std::endl;
 
             return {isAssert, os.str()};
         }
