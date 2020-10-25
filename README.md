@@ -69,7 +69,6 @@ To run all created tests use the `RUN_ALL_TESTS()` macro.
 #include <vector>
 
 #include "single_header/sutf.hpp"
-// #include "merger.hpp"
 
 TEST(strings)
 {
@@ -105,25 +104,114 @@ TEST(assert_failure)
     ASSERT_EQ(value_entries, 3u);
 }
 
-TEST(test_sfinae_print)
+int main()
 {
+     RUN_ALL_TESTS();
+     return 0;
+}
+```
+
+## Test output:
+If an assertion fails, an according failure message is printed to std::cerr in to provide information about failed comparison.
+The failure message, inter alia, contains `actual` and `expected` values according to the failed assertion. There are, however, three different cases for test output:
+1. If type T used in the failed assertion has no standard stream inserter operator, then values of the type will still be printed by default test output function.
+2. If the type T has standard stream inserter operator, then the operator is used for printing the failure message.
+3. If the type T has standard stream inserter operator, but also has user-defined function for test output, than the function is to be used.
+The function would provide different output for testing than the “normal” output. For example, you may want to print some hidden flags or data in the type that normally wouldn’t be exposed while printing.
+Function format:
+```c++
+std::ostream& user_defined_sutf_printer_function(std::ostream &os, T value)
+{
+  ...
+}
+```
+### Examples for the three cases:
+```c++
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <set>
+#include <map>
+#include <vector>
+
+std::ostream& operator << (std::ostream& os, const std::set<int>& obj)
+{
+    return os << " user-defined stream inserter for set<int>";
+}
+
+std::ostream& operator << (std::ostream& os, const std::map<int,int>& obj)
+{
+    return os << " user-defined stream inserter for map<int, int>";
+}
+
+// user-defined stream inserter
+std::ostream& operator << (std::ostream &os,
+                           const std::vector<std::pair<int, std::string>>& value)
+{
+    return os << "user-defined stream inserter std::vector<std::pair<int, std::string>>";
+}
+
+// user-defined function for test output
+std::ostream& user_defined_sutf_printer_function(std::ostream &os,
+                                                 const std::vector<std::pair<int, std::string>>& value)
+{
+    return os << "user-defined test output for std::vector<std::pair<int, std::string>>";
+}
+
+#include "single_header/sutf.hpp"
+
+TEST(test_output_print)
+{
+    {
+        std::vector<std::pair<int,int>> data1{{0, 1}, {2, 4}};
+        std::vector<std::pair<int,int>> data2{{0, 1}, {2, 1}};
+
+        // std::vector<std::pair<int,int>> has no stream inserter operator
+        // values of data1 and data2 will still be printed by
+        // SUTF's default test output function
+        ASSERT_EQ(data1, data2);
+    }
+
     {
         std::map<int, int> data1{{0, 1}, {2, 4}};
         std::map<int, int> data2{{0, 1}, {2, 6}};
+
+
+        // std::map<int,int> has defined stream inserter operator
+        // values of data1 and data2 will be thus printed by the operator
         ASSERT_EQ(data1,data2);
     }
 
     {
+        std::set<int> data1{1,2,3};
+        std::set<int> data2{1,2,4};
 
-        std::vector<std::pair<int,int>> data1{{0, 1}, {2, 4}};
-        std::vector<std::pair<int,int>> data2{{0, 1}, {2, 1}};
+        // std::set<int> has defined stream inserter operator
+        // values of data1 and data2 will be thus printed by the operator
+        ASSERT_EQ(data1,data2);
+    }
+
+    {
+        std::vector<std::pair<int,std::string>> data1{{0, "abc"}, {2, "def"}};
+        std::vector<std::pair<int,std::string>> data2{{0, "abc"}, {2, "efg"}};
+
+        // std::vector<std::pair<int,int>> has stream inserter operator
+        // the type also has user_defined_sutf_printer_function, meaning that it shall be
+        // used for the output:
         ASSERT_EQ(data1,data2);
     }
 }
 
 int main()
 {
-     RUN_ALL_TESTS();
-     return 0;
+    // default ("non-test") output for std::vector<std::pair<int,std::string>> uses user-defined
+    // stream inserter operator (while for tests' output user_defined_sutf_printer_function is employed)
+    std::vector<std::pair<int,std::string>> data1{{0, "abc"}, {2, "def"}};
+    std::cout << data1 << std::endl;
+
+    RUN_ALL_TESTS();
+    return 0;
 }
+
+
 ```
