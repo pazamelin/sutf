@@ -31,95 +31,103 @@ namespace sutf::_internal
         };
     };
 
-    //////////////////////////
-    //    CHECK FUNCTION    //
-    //////////////////////////
+    ///////////////////
+    //    CHECKER    //
+    ///////////////////
 
     template<class T, class U>
-    check_result check(
-            const T &t,
-            const U &u,
-            eOperators op,
-            bool isAssert,
-            const std::string &hint = {})
+    class checker
     {
-        if (!(apply_operator(t, u, op)))
-        {
-            std::ostringstream os;
-            if (!hint.empty())
-            {
-                os << "     " << hint << std::endl;
-            }
+    public:
 
-            if (op == eOperators::EQ)
+        template<eOperators op>
+        static check_result check(const T& t,
+                           const U& u,
+                           bool isAssert,
+                           const std::string& hint = { })
+        {
+            if (!(operator_applier<T, U>::template apply<op>(t, u)))
             {
-                os << "         actual: ";
+                std::ostringstream os;
+                if (!hint.empty())
+                {
+                    os << "     " << hint << std::endl;
+                }
+
+                if (op == eOperators::EQ)
+                {
+                    os << "         actual: ";
+                    sutf_printer_function(os, t);
+                    os << ", expected: ";
+                    sutf_printer_function(os, u);
+                    os << "; ";
+                }
+                else
+                {
+                    os << "         ";
+                }
                 sutf_printer_function(os, t);
-                os << ", expected: ";
+                os << " " << sutf::_internal::to_string(!op) << " ";
                 sutf_printer_function(os, u);
-                os << "; ";
-            }
-            else
-            {
-                os << "         ";
-            }
-            sutf_printer_function(os, t);
-            os << " " << sutf::_internal::to_string(!op) << " ";
-            sutf_printer_function(os, u);
-            os << std::endl;
+                os << std::endl;
 
-            return {isAssert, os.str()};
+                return {isAssert, os.str()};
+            }
+            return {isAssert, ""};
         }
-        return {isAssert, ""};
+    };
 
-    }
-
-    check_result check_cstr(
-            const char *const cstr1,
-            const char *const cstr2,
-            eOperators op,
-            bool isAssert,
-            const std::string &hint = {})
+    class checker_cstr
     {
-        if (!(apply_operator(std::strcmp(cstr1, cstr2), 0, op)))
+    public:
+
+        template<eOperators op>
+        static check_result check(const char* const cstr1,
+                           const char* const cstr2,
+                           bool isAssert,
+                           const std::string& hint = { })
         {
-            std::ostringstream os;
-            if (!hint.empty())
+            int cstr_cmp_value{std::strcmp(cstr1, cstr2)};
+            if (!(operator_applier<int, int>::template apply<op>(cstr_cmp_value, 0)))
             {
-                os << "     " << hint << std::endl;
-            }
+                std::ostringstream os;
+                if (!hint.empty())
+                {
+                    os << "     " << hint << std::endl;
+                }
 
-            if (op == eOperators::EQ)
-            {
-                os << "         actual: \"" << cstr1 << "\n";
-                os << ", expected: \"" << cstr2 << "\"; ";
-            }
-            else
-            {
-                os << "         ";
-            }
-            os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
-               << " \"" << cstr2 << "\"" << std::endl;
+                if (op == eOperators::EQ)
+                {
+                    os << "         actual: \"" << cstr1 << "\n";
+                    os << ", expected: \"" << cstr2 << "\"; ";
+                }
+                else
+                {
+                    os << "         ";
+                }
+                os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
+                   << " \"" << cstr2 << "\"" << std::endl;
 
-            return {isAssert, os.str()};
+                return {isAssert, os.str()};
+            }
+            return {isAssert, ""};
         }
-        return {isAssert, ""};
-    }
+    };
 
     ////////////////////////////////////
     //   CHECK MACRO IMPLEMENTATION   //
     ////////////////////////////////////
 
-    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert) \
-        __rs.add(sutf::_internal::check(x, y,                    \
-                 sutf::_internal::eOperators::op,                \
-                 is_assert,                                      \
-                 CHECK_FAIL_INFO(x, y, type, op, iop)))
+    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert)      \
+        __rs.add(sutf::_internal::checker<decltype(x), decltype(y)>:: \
+                    check<sutf::_internal::eOperators::op>(x, y,      \
+                        is_assert,                                    \
+                        CHECK_FAIL_INFO(x, y, type, op, iop)))
 
-    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert) \
-        __rs.add(sutf::_internal::check_cstr(cstr1, cstr2,                    \
-                 sutf::_internal::eOperators::op,                             \
-                 is_assert,                                                   \
-                 CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
+    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert)      \
+        __rs.add(sutf::_internal::checker_cstr::                                   \
+                    check<sutf::_internal::eOperators::op>(cstr1, cstr2,           \
+                        is_assert,                                                 \
+                        CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
 
 } // namespace sutf::_internal
