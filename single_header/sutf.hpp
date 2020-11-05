@@ -267,7 +267,7 @@ namespace sutf::_internal
 
 #pragma once
 
-#include <cstdint>
+#include <cstring>
 #include <iostream>
 
 ///////////////////////////////////////
@@ -276,12 +276,12 @@ namespace sutf::_internal
 
 namespace sutf::_internal
 {
-    enum class eOperators : std::uint8_t
+    enum class eOperators : unsigned char
     {
         EQ, NE, LT, LE, GT, GE
     };
 
-    std::string to_string(const eOperators& obj)
+    constexpr const char* to_string(const eOperators& obj) noexcept
     {
         switch (obj)
         {
@@ -319,26 +319,76 @@ namespace sutf::_internal
         }
     }
 
-    template<class T, class U>
-    constexpr bool apply_operator(const T& t, const U& u,
-                                  const eOperators& op) noexcept
+    template <class T, class U>
+    class operator_applier
     {
-        switch (op)
+        template <eOperators, typename DUMMY = void>
+        struct specialized_applier
         {
-            case eOperators::EQ:
-                return t == u;
-            case eOperators::NE:
-                return t != u;
-            case eOperators::LT:
-                return t < u;
-            case eOperators::LE:
-                return t <= u;
-            case eOperators::GT:
-                return t > u;
-            case eOperators::GE:
-                return t >= u;
+            constexpr static void apply(const T& lhs, const U& rhs);
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::EQ, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs == rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::NE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs != rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::LT, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs < rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::LE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs <= rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::GT, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs > rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::GE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs >= rhs;
+            }
+        };
+
+    public:
+        template <eOperators op>
+        constexpr static bool apply(const T& lhs, const U& rhs)
+        {
+            return specialized_applier<op>::apply(lhs, rhs);
         }
-    }
+    };
 
 } // namespace sutf::_internal
 
@@ -348,9 +398,7 @@ namespace sutf::_internal
 
 #include <type_traits> // for enable_if, void_t, true_type, false_type
 #include <iostream>
-#include <vector>
-#include <map>
-#include <string>
+#include <string_view>
 #include <utility>
 
 //////////////////////////////////////
@@ -426,7 +474,7 @@ sutf_printer_function(std::ostream& os, const T& value)
 template<typename T>
 typename std::enable_if<sutf::_internal::has_output_operator<T>::value &&
                         sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
-        std::ostream&>::type
+std::ostream&>::type
 sutf_printer_function(std::ostream& os, const T& value)
 {
     return user_defined_sutf_printer_function(os, value);
@@ -436,8 +484,19 @@ sutf_printer_function(std::ostream& os, const T& value)
 //   TYPES WITHOUT DEFINED STREAM INSERTERS   //
 ////////////////////////////////////////////////
 
+template<typename T>
+typename std::enable_if<!sutf::_internal::has_output_operator<T>::value &&
+                         sutf::_internal::has_user_defined_sutf_printer_function<T>::value,
+std::ostream&>::type
+sutf_printer_function(std::ostream& os, const T& value)
+{
+    return user_defined_sutf_printer_function(os, value);
+}
+
 template<typename LHS, typename RHS>
-typename std::enable_if<!sutf::_internal::has_output_operator<std::pair<LHS, RHS>>::value,
+typename std::enable_if<!sutf::_internal::has_output_operator<std::pair<LHS, RHS>>::value &&
+                        !sutf::_internal::has_user_defined_sutf_printer_function
+                                                    <std::pair<LHS, RHS>>::value,
 std::ostream&>::type
 sutf_printer_function(std::ostream& os, const std::pair<LHS, RHS>& obj)
 {
@@ -449,8 +508,9 @@ sutf_printer_function(std::ostream& os, const std::pair<LHS, RHS>& obj)
 }
 
 template<typename T>
-typename std::enable_if<sutf::_internal::is_iterable<T>::value &&
-                        !sutf::_internal::has_output_operator<T>::value,
+typename std::enable_if<!sutf::_internal::has_output_operator<T>::value &&
+                        !sutf::_internal::has_user_defined_sutf_printer_function<T>::value &&
+                         sutf::_internal::is_iterable<T>::value,
 std::ostream& >::type
 sutf_printer_function(std::ostream& os, const T& obj)
 {
@@ -471,15 +531,43 @@ sutf_printer_function(std::ostream& os, const T& obj)
     return os;
 }
 
-template<typename T>
-typename std::enable_if<!sutf::_internal::is_iterable<T>::value &&
-                        !sutf::_internal::has_output_operator<T>::value,
-std::ostream& >::type
-sutf_printer_function(std::ostream& os, const T& value)
+///////////////////////////
+//   'UNPRINTABLE' TYPE  //
+///////////////////////////
+
+// https://stackoverflow.com/a/20170989/13589244
+template <typename T>
+constexpr auto type_name() noexcept
 {
+    std::string_view name, prefix, suffix;
+#ifdef __clang__
+    name = __PRETTY_FUNCTION__;
+    prefix = "auto type_name() [T = ";
+    suffix = "]";
+#elif defined(__GNUC__)
+    name = __PRETTY_FUNCTION__;
+    prefix = "constexpr auto type_name() [with T = ";
+    suffix = "]";
+#elif defined(_MSC_VER)
+    name = __FUNCSIG__;
+    prefix = "auto __cdecl type_name<";
+    suffix = ">(void) noexcept";
+#endif
+    name.remove_prefix(prefix.size());
+    name.remove_suffix(suffix.size());
+    return name;
+}
+
+template<typename T>
+typename std::enable_if<!sutf::_internal::has_output_operator<T>::value &&
+                        !sutf::_internal::has_user_defined_sutf_printer_function<T>::value &&
+                        !sutf::_internal::is_iterable<T>::value,
+std::ostream& >::type
+sutf_printer_function(std::ostream& os, const T&)
+{
+    // TODO: reflection  for unprintable type
     // cannot be printed
-    //TODO: reflection  for unprintable type
-    return os << "\"unprintable_value\"";
+    return os << "\"" << type_name<T>() << "\"";
 }
 
 
@@ -520,96 +608,104 @@ namespace sutf::_internal
         };
     };
 
-    //////////////////////////
-    //    CHECK FUNCTION    //
-    //////////////////////////
+    ///////////////////
+    //    CHECKER    //
+    ///////////////////
 
     template<class T, class U>
-    check_result check(
-            const T &t,
-            const U &u,
-            eOperators op,
-            bool isAssert,
-            const std::string &hint = {})
+    class checker
     {
-        if (!(apply_operator(t, u, op)))
-        {
-            std::ostringstream os;
-            if (!hint.empty())
-            {
-                os << "     " << hint << std::endl;
-            }
+    public:
 
-            if (op == eOperators::EQ)
+        template<eOperators op>
+        static check_result check(const T& t,
+                           const U& u,
+                           bool isAssert,
+                           const std::string& hint = { })
+        {
+            if (!(operator_applier<T, U>::template apply<op>(t, u)))
             {
-                os << "         actual: ";
+                std::ostringstream os;
+                if (!hint.empty())
+                {
+                    os << "     " << hint << std::endl;
+                }
+
+                if (op == eOperators::EQ)
+                {
+                    os << "         actual: ";
+                    sutf_printer_function(os, t);
+                    os << ", expected: ";
+                    sutf_printer_function(os, u);
+                    os << "; ";
+                }
+                else
+                {
+                    os << "         ";
+                }
                 sutf_printer_function(os, t);
-                os << ", expected: ";
+                os << " " << sutf::_internal::to_string(!op) << " ";
                 sutf_printer_function(os, u);
-                os << "; ";
-            }
-            else
-            {
-                os << "         ";
-            }
-            sutf_printer_function(os, t);
-            os << " " << sutf::_internal::to_string(!op) << " ";
-            sutf_printer_function(os, u);
-            os << std::endl;
+                os << std::endl;
 
-            return {isAssert, os.str()};
+                return {isAssert, os.str()};
+            }
+            return {isAssert, ""};
         }
-        return {isAssert, ""};
+    };
 
-    }
-
-    check_result check_cstr(
-            const char *const cstr1,
-            const char *const cstr2,
-            eOperators op,
-            bool isAssert,
-            const std::string &hint = {})
+    class checker_cstr
     {
-        if (!(apply_operator(std::strcmp(cstr1, cstr2), 0, op)))
+    public:
+
+        template<eOperators op>
+        static check_result check(const char* const cstr1,
+                           const char* const cstr2,
+                           bool isAssert,
+                           const std::string& hint = { })
         {
-            std::ostringstream os;
-            if (!hint.empty())
+            int cstr_cmp_value{std::strcmp(cstr1, cstr2)};
+            if (!(operator_applier<int, int>::template apply<op>(cstr_cmp_value, 0)))
             {
-                os << "     " << hint << std::endl;
-            }
+                std::ostringstream os;
+                if (!hint.empty())
+                {
+                    os << "     " << hint << std::endl;
+                }
 
-            if (op == eOperators::EQ)
-            {
-                os << "         actual: \"" << cstr1 << "\n";
-                os << ", expected: \"" << cstr2 << "\"; ";
-            }
-            else
-            {
-                os << "         ";
-            }
-            os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
-               << " \"" << cstr2 << "\"" << std::endl;
+                if (op == eOperators::EQ)
+                {
+                    os << "         actual: \"" << cstr1 << "\n";
+                    os << ", expected: \"" << cstr2 << "\"; ";
+                }
+                else
+                {
+                    os << "         ";
+                }
+                os << "\"" << cstr1 << "\" " << sutf::_internal::to_string(!op)
+                   << " \"" << cstr2 << "\"" << std::endl;
 
-            return {isAssert, os.str()};
+                return {isAssert, os.str()};
+            }
+            return {isAssert, ""};
         }
-        return {isAssert, ""};
-    }
+    };
 
     ////////////////////////////////////
     //   CHECK MACRO IMPLEMENTATION   //
     ////////////////////////////////////
 
-    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert) \
-        __rs.add(sutf::_internal::check(x, y,                    \
-                 sutf::_internal::eOperators::op,                \
-                 is_assert,                                      \
-                 CHECK_FAIL_INFO(x, y, type, op, iop)))
+    #define CHECK_IMPLEMENTATION(x, y, type, op, iop, is_assert)      \
+        __rs.add(sutf::_internal::checker<decltype(x), decltype(y)>:: \
+                    check<sutf::_internal::eOperators::op>(x, y,      \
+                        is_assert,                                    \
+                        CHECK_FAIL_INFO(x, y, type, op, iop)))
 
-    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert) \
-        __rs.add(sutf::_internal::check_cstr(cstr1, cstr2,                    \
-                 sutf::_internal::eOperators::op,                             \
-                 is_assert,                                                   \
-                 CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
+    #define CHECK_CSTR_IMPLEMENTATION(cstr1, cstr2, type, op, iop, is_assert)      \
+        __rs.add(sutf::_internal::checker_cstr::                                   \
+                    check<sutf::_internal::eOperators::op>(cstr1, cstr2,           \
+                        is_assert,                                                 \
+                        CHECK_FAIL_INFO(cstr1, cstr2, type, op, iop)))
 
 } // namespace sutf::_internal
 

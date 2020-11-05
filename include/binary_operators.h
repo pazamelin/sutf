@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <cstring>
 #include <iostream>
 
 ///////////////////////////////////////
@@ -9,12 +9,12 @@
 
 namespace sutf::_internal
 {
-    enum class eOperators : std::uint8_t
+    enum class eOperators : unsigned char
     {
         EQ, NE, LT, LE, GT, GE
     };
 
-    std::string to_string(const eOperators& obj)
+    constexpr const char* to_string(const eOperators& obj) noexcept
     {
         switch (obj)
         {
@@ -52,25 +52,75 @@ namespace sutf::_internal
         }
     }
 
-    template<class T, class U>
-    constexpr bool apply_operator(const T& t, const U& u,
-                                  const eOperators& op) noexcept
+    template <class T, class U>
+    class operator_applier
     {
-        switch (op)
+        template <eOperators, typename DUMMY = void>
+        struct specialized_applier
         {
-            case eOperators::EQ:
-                return t == u;
-            case eOperators::NE:
-                return t != u;
-            case eOperators::LT:
-                return t < u;
-            case eOperators::LE:
-                return t <= u;
-            case eOperators::GT:
-                return t > u;
-            case eOperators::GE:
-                return t >= u;
+            constexpr static void apply(const T& lhs, const U& rhs);
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::EQ, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs == rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::NE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs != rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::LT, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs < rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::LE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs <= rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::GT, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs > rhs;
+            }
+        };
+
+        template <typename DUMMY>
+        struct specialized_applier<eOperators::GE, DUMMY>
+        {
+            constexpr static bool apply(const T& lhs, const U& rhs)
+            {
+                return lhs >= rhs;
+            }
+        };
+
+    public:
+        template <eOperators op>
+        constexpr static bool apply(const T& lhs, const U& rhs)
+        {
+            return specialized_applier<op>::apply(lhs, rhs);
         }
-    }
+    };
 
 } // namespace sutf::_internal
