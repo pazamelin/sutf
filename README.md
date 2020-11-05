@@ -114,17 +114,28 @@ int main()
 ## Test output:
 If an assertion fails, an according failure message is printed to std::cerr in to provide information about failed comparison.
 The failure message, inter alia, contains `actual` and `expected` values according to the failed assertion. There are, however, three different cases for test output:
-1. If type T used in the failed assertion has no standard stream inserter operator, then values of the type will still be printed by default test output function.
-2. If the type T has standard stream inserter operator, then the operator is used for printing the failure message.
-3. If the type T has standard stream inserter operator, but also has user-defined function for test output, than the function is to be used.
-The function would provide different output for testing than the “normal” output. For example, you may want to print some hidden flags or data in the type that normally wouldn’t be exposed while printing.
-Function format:
+1. If the type T has both standard stream inserter operator and custom test output function, then the custom test output function is used for printing the failure message.
+2. If the type T has standard stream inserter operator but no custom test output function, then the standard stream inserter operator is used for printing the failure message. 
+3. If the type T has no standard stream inserter operator, but has custom test output function for test output, than the function is used for printing the failure message. 
+4. If the type T has neither standard stream inserter operator nor custom test output function, then default test output function is used. 
+
+custom test output function format:
 ```c++
 std::ostream& user_defined_sutf_printer_function(std::ostream &os, T value)
 {
   ...
 }
+
 ```
+The function may be used to provide different output for testing than the “normal” output. For example, you may want to print some hidden flags or data in the type that normally wouldn’t be exposed while printing.
+
+standard stream inserter operator          |custom test output function       | what is used for output
+------------------------ | ------------------------ | --------------
+`YES` | `YES` | `custom test output function`
+`YES` | `NO` | `standard stream inserter operator`
+`NO` | `YES` | `custom test output function`
+`NO` | `NO` | `default test output function`
+
 ### Examples for the three cases:
 ```c++
 #include <iostream>
