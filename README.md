@@ -1,6 +1,6 @@
 # simple unit test framework
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/954f686578db42a49f614bc4eea033f0)](https://app.codacy.com/gh/pazamelin/sutf?utm_source=github.com&utm_medium=referral&utm_content=pazamelin/sutf&utm_campaign=Badge_Grade) [![Linux Status](https://img.shields.io/badge/Linux-passing-green)]()  [![macOS Status](https://img.shields.io/badge/macOS-passing-green)]()  [![Windows Status](https://img.shields.io/badge/Windows-failing-red)]()
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/954f686578db42a49f614bc4eea033f0)](https://app.codacy.com/gh/pazamelin/sutf?utm_source=github.com&utm_medium=referral&utm_content=pazamelin/sutf&utm_campaign=Badge_Grade) [![Linux Status](https://img.shields.io/badge/Linux-passing-brightgreen)]()  [![macOS Status](https://img.shields.io/badge/macOS-passing-brightgreen)]()  [![Windows Status](https://img.shields.io/badge/Windows-failing-red)]()
 
 ## Assertions:
 
