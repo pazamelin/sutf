@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits> // for enable_if, void_t, true_type, false_type
 #include <iostream>
 #include <string_view>

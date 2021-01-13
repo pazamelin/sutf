@@ -1,1 +1,0 @@
-/usr/bin/c++   -Wall  -Wextra -pthread   CMakeFiles/sutf_example_1.dir/main.cpp.o  -o sutf_example_1 

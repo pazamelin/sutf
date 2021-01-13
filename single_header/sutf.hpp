@@ -1,12 +1,10 @@
-
-/* start of ../../include/top.h */
-
 #ifndef SUTF_HPP
 #define SUTF_HPP
 
 #define SUTF_HPP_VERSION_MAJOR 0
 #define SUTF_HPP_VERSION_MINOR 3
-#define SUTF_HPP_VERSION_PATCH 1
+#define SUTF_HPP_VERSION_PATCH 2
+#define SUTF_HPP_VERSION_TWEAK 1
 
 #if defined(_WIN32) || defined(_WIN64)
     #define SUTF_OS_WINDOWS
@@ -18,12 +16,7 @@
     #error unsupported platform
 #endif
 
-    // is not to be ignored during merging:
-    #include "../third_party/termcolor/termcolor.hpp"
-
-/* end of ../../include/top.h */
-
-/* start of ../../include/public_api.h */
+#include "../third_party/termcolor/termcolor.hpp"
 
 #pragma once
 
@@ -209,10 +202,6 @@ namespace sutf
 
 } // namespace sutf
 
-/* end of ../../include/public_api.h */
-
-/* start of ../../include/fail_info.h */
-
 #pragma once
 
 namespace sutf::_internal
@@ -260,10 +249,6 @@ namespace sutf::_internal
         __FILE__ ":" STRINGIZE(__LINE__)
 
 } // namespace sutf::_internal
-
-/* end of ../../include/fail_info.h */
-
-/* start of ../../include/binary_operators.h */
 
 #pragma once
 
@@ -391,10 +376,7 @@ namespace sutf::_internal
     };
 
 } // namespace sutf::_internal
-
-/* end of ../../include/binary_operators.h */
-
-/* start of ../../include/printing.h */
+#pragma once
 
 #include <type_traits> // for enable_if, void_t, true_type, false_type
 #include <iostream>
@@ -571,10 +553,6 @@ sutf_printer_function(std::ostream& os, const T&)
 }
 
 
-/* end of ../../include/printing.h */
-
-/* start of ../../include/check.h */
-
 #pragma once
 
 #include <string>
@@ -709,10 +687,6 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../../include/check.h */
-
-/* start of ../../include/test.h */
-
 #pragma once
 
 #include <list>
@@ -808,11 +782,6 @@ namespace sutf::_internal
     };
 
 } // namespace sutf::_internal
-
-/* end of ../../include/test.h */
-
-/* start of ../../include/linker_sections.h */
-
 #pragma once
 
 // #include "test.h"
@@ -829,10 +798,6 @@ extern sutf::_internal::test_t __stop_tests;
 extern sutf::_internal::test_name_t __start_test_names;
 extern sutf::_internal::test_name_t __stop_test_names;
 
-
-/* end of ../../include/linker_sections.h */
-
-/* start of ../../include/test_runner.h */
 
 #pragma once
 
@@ -995,16 +960,8 @@ namespace sutf::_internal
 
 } // namespace sutf::_internal
 
-/* end of ../../include/test_runner.h */
-
-/* start of ../../include/bottom.h */
-
-// #endif /* SUTF_HPP_IMPLEMENTATION_H */
-
 #undef SUTF_OS_WINDOWS
 #undef SUTF_OS_MACOS
 #undef SUTF_OS_LINUX
 
-#endif // SUTF_HPP_
-
-/* end of ../../include/bottom.h */
+#endif // SUTF_HPP
