@@ -1,2 +1,0 @@
-/home/pazamelin/CLionProjects/sutf/single_header/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/pazamelin/CLionProjects/sutf/single_header/cmake-build-debug/CMakeFiles/edit_cache.dir
