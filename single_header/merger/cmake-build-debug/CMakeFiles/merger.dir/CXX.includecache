@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pazamelin/CLionProjects/sutf/single_header/merger/main.cpp
+iostream
+-
+string
+-
+vector
+-
+merger.hpp
+/home/pazamelin/CLionProjects/sutf/single_header/merger/merger.hpp
+
+/home/pazamelin/CLionProjects/sutf/single_header/merger/merger.hpp
+string
+-
+string_view
+-
+type_traits
+-
+iterator
+-
+iostream
+-
+fstream
+-
+exception
+-
+
