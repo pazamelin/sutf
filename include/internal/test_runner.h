@@ -10,35 +10,6 @@
 
 namespace sutf::_internal
 {
-    //////////////////
-    //   PROFILER   //
-    //////////////////
-
-    #define UNIQUE_ID_IMPLEMENTATION(type, line) __ ## type ## _ ## line
-    #define UNIQUE_ID(type, line) UNIQUE_ID_IMPLEMENTATION(type, line)
-    #define LOG_DURATION(msg) LogDuration UNIQUE_ID(log_duration_, __LINE__){msg}
-
-    class LogDuration
-    {
-    public:
-        explicit LogDuration(std::string _msg = "")
-                : msg{std::move(_msg)},
-                  start{std::chrono::steady_clock::now()}
-        { };
-
-        ~LogDuration()
-        {
-            auto finish{std::chrono::steady_clock::now()};
-            auto duration{finish - start};
-            std::cerr << msg << ": " << std::chrono::duration_cast<std::chrono::milliseconds>
-                    (duration).count() << " ms " << std::endl;
-        }
-
-    private:
-        const std::string msg;
-        const std::chrono::steady_clock::time_point start;
-    };
-
     ////////////////
     //   LABELS   //
     ////////////////

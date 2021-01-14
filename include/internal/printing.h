@@ -173,4 +173,3 @@ sutf_printer_function(std::ostream& os, const T&)
     // cannot be printed
     return os << "\"" << type_name<T>() << "\"";
 }
-
